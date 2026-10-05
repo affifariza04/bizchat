@@ -1,0 +1,16 @@
+{
+  "name": "bizchat",
+  "version": "1.0.0",
+  "description": "BizChat - AI Chatbot Layanan Pelanggan untuk UMKM (Tugas Besar, Manajemen Proyek dan Perubahan)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BizChat — Panel Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="word">BizChat</span><span class="dot">.</span></div>
+    <ul class="navlist" id="navList">
+      <li><button data-page="preview" class="active">Live Preview</button></li>
+      <li><button data-page="dashboard">Dashboard</button></li>
+      <li><button data-page="kb">Knowledge Base</button></li>
+    </ul>
+    <div class="sidebar-foot" id="aiStatusPill">
+      <span class="dot"></span>
+      <span>AI fallback: <b id="aiStatusText">memeriksa...</b></span>
+    </div>
+  </aside>
+
+  <nav class="topnav">
+    <div class="brand"><span class="word">BizChat</span><span class="dot">.</span></div>
+    <ul class="navlist" id="navListMobile">
+      <li><button data-page="preview" class="active">Live Preview</button></li>
+      <li><button data-page="dashboard">Dashboard</button></li>
+      <li><button data-page="kb">Knowledge Base</button></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- ===== PAGE: Live Preview ===== -->
+    <section class="page active" id="page-preview">
+      <div class="pagehead">
+        <h1>Live Preview</h1>
+        <p>Simulasi BizChat saat tertanam di website usaha kamu.</p>
+      </div>
+      <div style="padding:0 32px;">
+        <div class="preview-stage">
+          <div class="stage-label">Contoh — halaman website UMKM</div>
+          <div class="stage-copy">
+            <h2>Toko Kita</h2>
+            <p>Produk dan layanan terpercaya sejak 2020. Ada pertanyaan? Chat kami di pojok kanan bawah, kapan saja.</p>
+          </div>
+
+          <button class="widget-fab" id="widgetFab" aria-label="Buka chat">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H7l-3 3V5z" fill="currentColor"/></svg>
+          </button>
+
+          <div class="widget-panel" id="widgetPanel">
+            <div class="widget-head">
+              <div class="name">BizChat</div>
+              <div class="status">Online · biasanya balas instan</div>
+            </div>
+            <div class="widget-body" id="chatBody">
+              <div class="msg bot">Halo! Ada yang bisa dibantu soal produk atau pesanan?</div>
+            </div>
+            <div class="widget-chips">
+              <button class="chip" data-q="Jam buka berapa?">Jam Buka</button>
+              <button class="chip" data-q="Ada promo apa bulan ini?">Promo</button>
+              <button class="chip" data-q="Bagaimana cara pesan?">Cara Pesan</button>
+              <button class="chip" data-q="Bisa kirim ke luar kota?">Pengiriman</button>
+            </div>
+            <div class="widget-composer">
+              <input id="chatInput" type="text" placeholder="Tulis pertanyaan..." />
+              <button id="sendBtn" aria-label="Kirim">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L14 20L11 13L4 12Z" fill="currentColor"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="preview-note">Widget ini merespons dari Knowledge Base dulu. Kalau tidak cocok dan API key AI aktif di server, pertanyaan diteruskan ke Gemini; kalau tidak ada key, otomatis dieskalasi — lihat di halaman Dashboard.</p>
+      </div>
+    </section>
+
+    <!-- ===== PAGE: Dashboard ===== -->
+    <section class="page" id="page-dashboard">
+      <div class="pagehead">
+        <h1>Dashboard</h1>
+        <p>Ringkasan pemakaian BizChat sejak server berjalan.</p>
+      </div>
+      <div style="padding:0 32px;">
+        <div class="hero-stat">
+          <div class="num" id="statTotal">0</div>
+          <div class="meta"><b>Total pertanyaan masuk.</b> Dihitung sejak server terakhir dinyalakan.</div>
+        </div>
+        <div class="subrow">
+          <div class="item kb"><div class="n" id="statKb">0</div><div class="l">Terjawab dari Knowledge Base</div></div>
+          <div class="item ai"><div class="n" id="statAi">0</div><div class="l">Terjawab oleh AI</div></div>
+          <div class="item esc"><div class="n" id="statEsc">0</div><div class="l">Dieskalasi ke staf</div></div>
+        </div>
+
+        <p class="section-title">Topik paling sering ditanyakan</p>
+        <p class="section-sub">Dihitung dari kata kunci Knowledge Base yang paling sering cocok.</p>
+        <div class="barlist" id="barList"></div>
+
+        <p class="section-title">Antrean eskalasi ke staf</p>
+        <p class="section-sub">Pertanyaan yang belum terjawab otomatis, menunggu ditindaklanjuti.</p>
+        <ul class="feed" id="escList"></ul>
+        <div class="empty-note" id="escEmpty">Belum ada pertanyaan yang dieskalasi.</div>
+      </div>
+    </section>
+
+    <!-- ===== PAGE: Knowledge Base ===== -->
+    <section class="page" id="page-kb">
+      <div class="pagehead">
+        <h1>Knowledge Base</h1>
+        <p>Kata kunci dan jawaban yang dipakai BizChat untuk menjawab otomatis.</p>
+      </div>
+      <div style="padding:0 32px;">
+        <div class="toolbar">
+          <div class="search-box">
+            <input id="kbSearch" type="text" placeholder="Cari kata kunci atau jawaban...">
+          </div>
+          <button class="btn brass" id="toggleAdd">+ Tambah entri</button>
+        </div>
+
+        <table class="kbtable">
+          <thead><tr><th style="width:140px;">Kata Kunci</th><th>Jawaban</th><th style="width:70px;">Terpakai</th><th style="width:40px;"></th></tr></thead>
+          <tbody id="kbBody"></tbody>
+        </table>
+
+        <div class="add-panel" id="addPanel" style="display:none;">
+          <p class="section-title">Entri baru</p>
+          <div class="add-grid">
+            <input id="newKey" type="text" placeholder="Kata kunci (mis. retur)">
+            <input id="newVal" type="text" placeholder="Jawaban untuk kata kunci ini">
+            <button class="btn" id="addKb">Simpan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
