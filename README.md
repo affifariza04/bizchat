@@ -1,77 +1,91 @@
 # BizChat
 
-AI Chatbot Layanan Pelanggan untuk UMKM — Tugas Besar (menuju UTS/UAS),
-mata kuliah Manajemen Proyek dan Perubahan.
+**An AI customer-service chatbot for small businesses: instant answers from a keyword knowledge base, a Gemini fallback for everything else, and a human escalation queue so no question is lost.**
 
-Dibuat general supaya bisa dipakai berbagai jenis usaha kecil-menengah
-(retail, F&B, jasa) — bukan dikunci ke satu bisnis tertentu.
+![node](https://img.shields.io/badge/node-%E2%89%A518-339933?logo=node.js&logoColor=white)
+![express](https://img.shields.io/badge/Express-000000?logo=express)
+![gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?logo=googlegemini&logoColor=white)
+![license](https://img.shields.io/badge/license-MIT-blue)
 
-Backend Node.js/Express + knowledge base berbasis file JSON, dengan
-fallback ke Gemini (Google AI) untuk pertanyaan di luar knowledge
-base. Tanpa API key, aplikasi tetap jalan penuh — pertanyaan yang
-tidak cocok otomatis "dieskalasi" ke staf (tersimpan di Dashboard).
+Small shops (retail, F&B, services) get the same handful of questions all day: opening hours, prices, promos, how to order, delivery. BizChat answers those instantly and costs nothing per message. It only calls an LLM when needed, and hands over to staff when it isn't sure. The bot and admin panel are in Bahasa Indonesia, built for Indonesian SMEs (UMKM).
 
-## Menjalankan di komputer sendiri
+## How a message is answered
 
-Butuh Node.js versi 18 ke atas.
-
-```bash
-npm install
-npm start
+```
+customer message
+      │
+      ▼
+ 1. keyword knowledge base ──match──▶ answer instantly (free, deterministic)
+      │ no match
+      ▼
+ 2. Gemini 2.5 Flash ──confident──▶ AI answer, restricted to shop topics
+      │ off-topic / unsure ("ESCALATE") / no API key
+      ▼
+ 3. escalation queue ──▶ shown on the staff dashboard for a human reply
 ```
 
-Buka `http://localhost:3000` di browser.
+Every step is counted, so the dashboard shows how much traffic the knowledge base absorbs, how much needs AI, and how much needs a person.
 
-## Mengaktifkan AI (opsional, gratis)
+## Features
 
-1. Salin `.env.example` menjadi `.env`
-2. Buka https://aistudio.google.com/apikey, login pakai akun Google, klik "Create API key" (gratis, tanpa kartu kredit)
-3. Isi `GEMINI_API_KEY=...` di file `.env` dengan key yang didapat
-4. Jalankan ulang `npm start`
+- **Embeddable chat widget** with quick-reply chips, previewed on a mock shop page
+- **Knowledge base editor:** add and delete keyword → answer pairs from the UI, with hit counts per entry
+- **Dashboard:** total questions, a breakdown by KB / AI / escalated, the most-asked topics, and the escalation queue
+- **Guard-railed LLM fallback:** the system prompt limits Gemini to shop topics in up to three sentences, and it returns a sentinel instead of guessing
+- **Works with no API key:** without one, unmatched questions go straight to staff, so the app is fully usable offline
 
-Sidebar kiri akan menampilkan status "AI fallback: aktif" kalau key
-terbaca dengan benar.
+## Run it
 
-## Mengganti isi Knowledge Base untuk bisnis tertentu
+```bash
+git clone https://github.com/affifariza04/bizchat && cd bizchat
+npm install
+npm start            # http://localhost:3000
+```
 
-Edit `data/kb.json` — isinya array kata kunci dan jawaban, contoh:
+To enable the AI fallback, copy `.env.example` to `.env` and set `GEMINI_API_KEY` (free key at https://aistudio.google.com/apikey). The sidebar shows **AI fallback: aktif** when the key is loaded.
+
+### Adapting it to a business
+
+Edit `data/kb.json` or use the **Knowledge Base** page:
 
 ```json
 { "key": "garansi", "answer": "Produk kami bergaransi 7 hari untuk kerusakan pabrik." }
 ```
 
-Atau edit langsung lewat halaman **Knowledge Base** di aplikasi (tombol "+ Tambah entri").
+### Deploy
 
-## Struktur project
+It runs on any Node host. On Render, for example: New → Web Service → this repo, build command `npm install`, start command `npm start`, and optionally set `GEMINI_API_KEY`.
+
+## API
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/chat` | `{ message }` → `{ source: "kb" \| "ai" \| "escalate", answer }` |
+| `GET` / `POST` | `/api/kb` | List or add knowledge-base entries |
+| `DELETE` | `/api/kb/:index` | Remove an entry |
+| `GET` | `/api/stats` | Usage counters |
+| `GET` | `/api/escalations` | Questions waiting for staff |
+| `GET` | `/api/status` | Whether the AI fallback is enabled |
+
+## Project layout
 
 ```
-bizchat/
-├─ server.js          backend Express (API + serve frontend)
-├─ public/
-│  ├─ index.html       halaman app (Live Preview, Dashboard, Knowledge Base)
-│  ├─ style.css        desain
-│  └─ app.js           logic frontend (fetch ke API)
-├─ data/
-│  ├─ kb.json           knowledge base (bisa diedit manual atau lewat UI)
-│  ├─ stats.json        statistik pemakaian
-│  └─ escalations.json  antrean pertanyaan yang dieskalasi
-└─ .env.example
+server.js        Express API + static hosting, KB → Gemini → escalation pipeline
+public/          admin panel and chat widget (vanilla HTML/CSS/JS)
+data/            JSON storage: knowledge base, stats, escalation queue
 ```
 
-## Deploy ke Render (gratis, no credit card)
+## Security notes
 
-1. Push folder ini ke repo GitHub baru
-2. Buka render.com → Sign up pakai akun GitHub
-3. Dashboard → New → Web Service → pilih repo `bizchat`
-4. Build Command: `npm install` — Start Command: `npm start`
-5. (Opsional) Tambahkan Environment Variable `GEMINI_API_KEY` biar AI aktif
-6. Create Web Service — tunggu ±2 menit, dapat URL publik
+- The Gemini key is sent in the `x-goog-api-key` header, never in the URL, so it doesn't end up in proxy logs.
+- Customer messages are escaped before rendering in the staff dashboard (prevents stored XSS from chat input).
+- `.env` is git-ignored.
 
-Paket gratis Render "tidur" kalau tidak diakses 15 menit, nanti bangun
-otomatis (agak lambat di request pertama) saat ada yang buka lagi —
-cukup untuk demo tugas kuliah.
+## Limitations and roadmap
 
-### Catatan keamanan sebelum hosting publik
-- Jangan commit file `.env` ke git (sudah ada di `.gitignore`)
-- `data/*.json` ditulis langsung oleh server — kalau trafik ramai, pertimbangkan migrasi ke database asli
-- Belum ada autentikasi di halaman Dashboard/Knowledge Base — untuk demo kelas tidak masalah, tapi untuk produksi sungguhan perlu ditambah login admin
+- **No admin login yet.** The dashboard and knowledge-base editor must not be exposed publicly as-is. Next step: session auth for staff.
+- **JSON-file storage** is fine for one small shop. Multiple shops or heavy traffic need a database (SQLite or Postgres).
+- **Substring keyword matching** can misfire on short keys. Semantic matching with embeddings is the natural upgrade (see [ragkit](https://github.com/affifariza04/ragkit)).
+- Replying to escalations from inside the dashboard, and WhatsApp integration.
+
+MIT licensed.

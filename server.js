@@ -80,12 +80,12 @@ async function askGemini(question) {
     "Jika pertanyaan di luar topik tersebut, atau kamu tidak yakin jawabannya, " +
     "balas persis dengan teks: ESCALATE";
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: question }] }],
@@ -149,7 +149,7 @@ app.post("/api/chat", async (req, res) => {
   return res.json({
     source: "escalate",
     answer:
-      "Aku belum punya jawaban untuk itu. Pertanyaanmu otomatis diteruskan ke staf BAAK, mereka akan follow up lewat email kampusmu.",
+      "Aku belum punya jawaban untuk itu. Pertanyaanmu sudah diteruskan ke tim kami dan akan segera dibalas.",
   });
 });
 

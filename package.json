@@ -1,7 +1,7 @@
 {
   "name": "bizchat",
   "version": "1.0.0",
-  "description": "BizChat - AI Chatbot Layanan Pelanggan untuk UMKM (Tugas Besar, Manajemen Proyek dan Perubahan)",
+  "description": "AI customer-service chatbot for small businesses: keyword knowledge base, Gemini fallback, and human escalation with a staff dashboard.",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -12,5 +12,8 @@
     "express": "^4.19.2",
     "dotenv": "^16.4.5"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
 }

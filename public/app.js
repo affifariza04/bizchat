@@ -1,3 +1,8 @@
+// Customer messages and KB entries are untrusted: escape before using innerHTML.
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // ---------- Page / nav switching ----------
 const pages = { preview: document.getElementById('page-preview'), dashboard: document.getElementById('page-dashboard'), kb: document.getElementById('page-kb') };
 function goToPage(name) {
@@ -96,7 +101,7 @@ async function refreshDashboard() {
       const row = document.createElement('div');
       row.className = 'barrow';
       const pct = Math.max(6, Math.round((item.hits / max) * 100));
-      row.innerHTML = `<div class="lbl">${item.key}</div><div class="track"><div class="fill" style="width:${pct}%"></div></div><div class="ct">${item.hits}</div>`;
+      row.innerHTML = `<div class="lbl">${escapeHtml(item.key)}</div><div class="track"><div class="fill" style="width:${pct}%"></div></div><div class="ct">${item.hits}</div>`;
       barList.appendChild(row);
     });
   }
@@ -111,7 +116,7 @@ async function refreshDashboard() {
     escalations.slice().reverse().slice(0, 8).forEach(e => {
       const li = document.createElement('li');
       const t = new Date(e.time).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-      li.innerHTML = `<div><div class="fq">"${e.question}"</div><div class="ft">${t}</div></div>`;
+      li.innerHTML = `<div><div class="fq">"${escapeHtml(e.question)}"</div><div class="ft">${t}</div></div>`;
       feed.appendChild(li);
     });
   }
@@ -130,8 +135,8 @@ function renderKbTable(list) {
     const realIndex = kbCache.indexOf(item);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="kw-chip">${item.key}</span></td>
-      <td>${item.answer}</td>
+      <td><span class="kw-chip">${escapeHtml(item.key)}</span></td>
+      <td>${escapeHtml(item.answer)}</td>
       <td class="hitcount">${item.hits || 0}×</td>
       <td><button class="row-del" data-idx="${realIndex}">Hapus</button></td>`;
     body.appendChild(tr);
